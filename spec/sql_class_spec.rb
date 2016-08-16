@@ -1,4 +1,4 @@
-require '01_sql_object'
+require 'sql_class'
 require 'db_connection'
 require 'securerandom'
 
@@ -238,4 +238,3 @@ describe SQLObject do
     end
   end
 end
-

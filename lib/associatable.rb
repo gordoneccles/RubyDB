@@ -1,13 +1,7 @@
-require_relative '02_searchable'
 require 'active_support/inflector'
 
-# Phase IIIa
 class AssocOptions
-  attr_accessor(
-    :foreign_key,
-    :class_name,
-    :primary_key
-  )
+  attr_accessor :primary_key, :foreign_key, :class_name
 
   def model_class
     @class_name.constantize
@@ -42,23 +36,22 @@ class HasManyOptions < AssocOptions
 end
 
 module Associatable
-  # Phase IIIb
   def belongs_to(owner, options = {})
-    owner_info = BelongsToOptions.new(owner, options)
+    owner_db_attributes = BelongsToOptions.new(owner, options)
 
-    assoc_options[owner] = owner_info
+    assoc_options[owner] = owner_db_attributes
 
     define_method(owner.to_s) do
       results = DBConnection.execute(<<-SQL)
         SELECT
           *
         FROM
-          #{owner_info.table_name}
+          #{owner_db_attributes.table_name}
         WHERE
-          #{owner_info.table_name}.#{owner_info.primary_key} = #{self.send(:id)}
+          #{owner_db_attributes.table_name}.#{owner_db_attributes.primary_key} = #{self.send(:id)}
       SQL
 
-      owner_info.model_class.parse_all(results).last
+      owner_db_attributes.model_class.parse_all(results).last
     end
   end
 
@@ -79,11 +72,32 @@ module Associatable
     end
   end
 
+  def has_one_through(target_name, relay_name, relays_name_for_target)
+    relay_db_attributes = self.assoc_options[relay_name]
+
+
+    define_method(target_name) do
+      target_db_attributes = relay_db_attributes.model_class.assoc_options[relays_name_for_target]
+
+      results = DBConnection.execute(<<-SQL)
+        SELECT
+          #{target_db_attributes.table_name}.*
+        FROM
+          #{relay_db_attributes.table_name}
+        JOIN
+          #{target_db_attributes.table_name} ON
+            #{relay_db_attributes.table_name}.#{target_db_attributes.foreign_key} =
+            #{target_db_attributes.table_name}.#{target_db_attributes.primary_key}
+        WHERE
+          #{relay_db_attributes.table_name}.#{relay_db_attributes.primary_key} = #{self.send(relay_db_attributes.foreign_key)}
+      SQL
+
+      target_db_attributes.model_class.parse_all(results).last
+
+    end
+  end
+
   def assoc_options
     @assoc_options ||= Hash.new
   end
-end
-
-class SQLObject
-  extend Associatable
 end

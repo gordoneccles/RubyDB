@@ -1,4 +1,4 @@
-require '02_searchable'
+require 'searchable'
 
 describe 'Searchable' do
   before(:each) { DBConnection.reset }
@@ -42,4 +42,3 @@ describe 'Searchable' do
     expect(Human.where(fname: 'Nowhere', lname: 'Man')).to eq([])
   end
 end
-
