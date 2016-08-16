@@ -1,29 +1,40 @@
 require_relative 'db_connection'
-require 'byebug'
 
 module Validatable
 
-  def self.validates(*attribute_names, options)
-    @validations = [];
+  def self.included(base)
+    base.extend ClassValidations
+  end
 
-    options.each_key do |option|
-      attribute_names.each do |attribute_name|
-        @validations << Proc.new { raise "#{attribute_name} cannot be blank" )}
+  module ClassValidations
+    def validates(*attribute_names, options)
+      @validations = [];
+
+      options.each_key do |option|
+        attribute_names.each do |attribute_name|
+          @validations << make_validation(option, attribute_name)
+        end
+      end
+
+    end
+
+    def make_validation(option, attribute_name)
+      if option == :presence
+        return "raise \"#{attribute_name} cannot be blank\" unless send(\"#{attribute_name}\")"
+      elsif option == :uniqueness
+        return "raise \"#{attribute_name} must be unique\" unless send(\"unique?\", \"#{attribute_name}\")"
       end
     end
-  end
 
-  def self.make_validation(option, attribute_name)
-    if option == :presence
-      return Proc.new { raise "#{attribute_name} cannot be blank" )}
-    elsif option == :uniqueness
-      return Proc.new { raise "#{attribute_name} must be unique" unless self.send("unique?", attribute_name)}
+    def validations
+      @validations
     end
   end
 
+
   def validate!
-    @validations.each do |validation|
-      validation.call
+    self.class.validations.each do |validation|
+      self.instance_eval(validation)
     end
   end
 
@@ -34,12 +45,12 @@ module Validatable
       SELECT
         *
       FROM
-        #{table_name}
+        #{self.class.table_name}
       WHERE
         #{attribute_name} = ?
     SQL
 
-    if results.length == 0 || (results.length == 1 && results.first.id == self.id)
+    if results.length == 0 || (results.length == 1 && results.first["id"] == self.id)
       return true
     end
 

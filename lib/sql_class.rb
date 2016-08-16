@@ -1,30 +1,12 @@
 require_relative 'db_connection'
 require_relative 'searchable'
 require_relative 'associatable'
-# require_relative 'validatable'
-require 'byebug'
+require_relative 'validatable'
 
 class SQLClass
   extend Searchable
   extend Associatable
-  # include Validatable
-
-  def self.validates(*attribute_names, options)
-    @@validations = [];
-    options.each_key do |option|
-      attribute_names.each do |attribute_name|
-        @@validations << make_validation(option, attribute_name)
-      end
-    end
-  end
-
-  def make_validation(option, attribute_name)
-    if option == :presence
-      return Proc.new { raise "#{attribute_name} cannot be blank" unless send("#{attribute_name}") }
-    elsif option == :uniqueness
-      return Proc.new { raise "#{attribute_name} must be unique" unless self.send("unique?", attribute_name)}
-    end
-  end
+  include Validatable
 
   def self.table_name=(table_name)
     @table_name = table_name
@@ -157,31 +139,6 @@ class SQLClass
       WHERE
         id = ?
     SQL
-  end
-
-  def validate!
-    @@validations.each do |validation|
-      validation.call
-    end
-  end
-
-  def unique?(attribute_name)
-    value = self.send("#{attribute_name}")
-
-    results = DBConnection.execute(<<-SQL, value)
-      SELECT
-        *
-      FROM
-        #{table_name}
-      WHERE
-        #{attribute_name} = ?
-    SQL
-
-    if results.length == 0 || (results.length == 1 && results.first.id == self.id)
-      return true
-    end
-
-    false
   end
 
   def save
