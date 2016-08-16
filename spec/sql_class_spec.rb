@@ -2,13 +2,13 @@ require 'sql_class'
 require 'db_connection'
 require 'securerandom'
 
-describe SQLObject do
+describe SQLClass do
   before(:each) { DBConnection.reset }
   after(:each) { DBConnection.reset }
 
   context 'before ::finalize!' do
     before(:each) do
-      class Cat < SQLObject
+      class Cat < SQLClass
       end
     end
 
@@ -24,7 +24,7 @@ describe SQLObject do
 
     describe '::table_name=' do
       it 'sets table name' do
-        class Human < SQLObject
+        class Human < SQLClass
           self.table_name = 'humans'
         end
 
@@ -67,11 +67,11 @@ describe SQLObject do
 
   context 'after ::finalize!' do
     before(:all) do
-      class Cat < SQLObject
+      class Cat < SQLClass
         self.finalize!
       end
 
-      class Human < SQLObject
+      class Human < SQLClass
         self.table_name = 'humans'
 
         self.finalize!

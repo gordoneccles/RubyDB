@@ -2,12 +2,12 @@ require 'sql_class'
 require 'db_connection'
 require 'securerandom'
 
-describe SQLObject do
+describe SQLClass do
   before(:each) { DBConnection.reset }
   after(:each) { DBConnection.reset }
 
   before(:all) do
-    class Cat < SQLObject
+    class Cat < SQLClass
       validates :name, presence: true
       finalize!
     end

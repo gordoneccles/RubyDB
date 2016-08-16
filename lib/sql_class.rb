@@ -4,7 +4,7 @@ require_relative 'associatable'
 # require_relative 'validatable'
 require 'byebug'
 
-class SQLObject
+class SQLClass
   extend Searchable
   extend Associatable
   # include Validatable

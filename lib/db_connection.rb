@@ -1,10 +1,12 @@
 require 'sqlite3'
 
-PRINT_QUERIES = ENV['PRINT_QUERIES'] == 'true'
+# PRINT_QUERIES = ENV['PRINT_QUERIES'] == 'true'
 # https://tomafro.net/2010/01/tip-relative-paths-with-file-expand-path
 ROOT_FOLDER = File.join(File.dirname(__FILE__), '..')
-CATS_SQL_FILE = File.join(ROOT_FOLDER, 'cats.sql')
-CATS_DB_FILE = File.join(ROOT_FOLDER, 'cats.db')
+SQL_FILE = DB_FILE = Dir.glob("#{ROOT_FOLDER}/**/*.sql").first
+# SQL_FILE = File.join(ROOT_FOLDER, 'cats.sql')
+DB_FILE = Dir.glob("#{ROOT_FOLDER}/**/*.db").first
+# DB_FILE = File.join(ROOT_FOLDER, 'cats.db')
 
 class DBConnection
   def self.open(filename)
@@ -17,12 +19,12 @@ class DBConnection
 
   def self.reset
     commands = [
-      "rm '#{CATS_DB_FILE}'",
-      "cat '#{CATS_SQL_FILE}' | sqlite3 '#{CATS_DB_FILE}'"
+      "rm '#{DB_FILE}'",
+      "cat '#{SQL_FILE}' | sqlite3 '#{DB_FILE}'"
     ]
 
     commands.each { |command| `#{command}` }
-    DBConnection.open(CATS_DB_FILE)
+    DBConnection.open(DB_FILE)
   end
 
   def self.instance
@@ -32,12 +34,12 @@ class DBConnection
   end
 
   def self.execute(*args)
-    print_query(*args)
+    # print_query(*args)
     instance.execute(*args)
   end
 
   def self.execute2(*args)
-    print_query(*args)
+    # print_query(*args)
     instance.execute2(*args)
   end
 
@@ -45,16 +47,16 @@ class DBConnection
     instance.last_insert_row_id
   end
 
-  private
-
-  def self.print_query(query, *interpolation_args)
-    return unless PRINT_QUERIES
-
-    puts '--------------------'
-    puts query
-    unless interpolation_args.empty?
-      puts "interpolate: #{interpolation_args.inspect}"
-    end
-    puts '--------------------'
-  end
+  # private
+  #
+  # def self.print_query(query, *interpolation_args)
+  #   return unless PRINT_QUERIES
+  #
+  #   puts '--------------------'
+  #   puts query
+  #   unless interpolation_args.empty?
+  #     puts "interpolate: #{interpolation_args.inspect}"
+  #   end
+  #   puts '--------------------'
+  # end
 end
