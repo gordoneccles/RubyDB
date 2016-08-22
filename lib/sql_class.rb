@@ -8,6 +8,32 @@ class SQLClass
   extend Associatable
   include Validatable
 
+  def self.all
+    results = DBConnection.execute(<<-SQL)
+    SELECT
+    *
+    FROM
+    #{table_name}
+    SQL
+
+    self.parse_all(results)
+  end
+
+  def self.parse_all(results)
+    results.map { |object| self.new(object) }
+  end
+
+  def self.get_columns
+    results = DBConnection.execute2(<<-SQL)
+    SELECT
+    *
+    FROM
+    #{table_name}
+    SQL
+
+    results.first.map{ |name| name.to_sym}
+  end
+
   def self.table_name=(table_name)
     @table_name = table_name
   end
@@ -36,16 +62,6 @@ class SQLClass
     @columns ||= self.get_columns
   end
 
-  def self.get_columns
-    results = DBConnection.execute2(<<-SQL)
-      SELECT
-        *
-      FROM
-        #{table_name}
-    SQL
-
-    results.first.map{ |name| name.to_sym}
-  end
 
   def self.col_names
     "(" + self.columns.map{ |col| col.to_s }.join(", ") + ")"
@@ -63,19 +79,13 @@ class SQLClass
     end
   end
 
-  def self.all
-    results = DBConnection.execute(<<-SQL)
-      SELECT
-        *
-      FROM
-        #{table_name}
-    SQL
 
-    self.parse_all(results)
+  def self.first
+    self.all.first
   end
 
-  def self.parse_all(results)
-    results.map { |object| self.new(object) }
+  def self.last
+    self.all.last
   end
 
   def self.find(id)

@@ -1,10 +1,12 @@
 # RubyDB
-RubyDB makes accessing and manipulating information in a SQL database easy and intuitive.
+RubyDB is an ORM that makes accessing and manipulating information in a SQL database easy and intuitive.
+Use standard Ruby methods to query, update, and insert information into your database.
+Insert an additional layer of validation to call before your data is committed to the database.
 
 ## Setup
-First ensure your sqlite3 database is located in the root directory. This allows the database wrapper to find it.
-
-To implement RubyDB create a new class to represent your SQL table. Have this class inherit from `SQLClass`, and at the end of your new class's definition, call the `::finalize!` method to ensure attribute setter and getter methods are created.
+1. Ensure your sqlite3 database is located in the root directory. This allows RubyDB to find it.
+2. Create a new class to represent your SQL table. Have this class inherit from `SQLClass`.
+3. At the end of your class definition, call the `::finalize!` method to ensure attribute setter and getter methods are created.
 
 That's it! You can now interact with your table via the new Ruby class.
 
@@ -19,7 +21,7 @@ Instances of a SQLClass subclass can be configured to validate their attributes 
 ## Querying the Database
 Use the `::find(id)` method to search the database for a single instance of this class based off it's primary key. This method returns an instance of the same class that was used for the search, not SQL data or a hash.
 
-Use the `::all()` method to return all instances of a particular class or the `::where(params)` method to filter based off the params hash.
+Use the `::all()` method to return all instances of a particular class or the `::where(params)` method to filter based off the params hash. The `::where(params)` method is also stackable, and returns a `Relation` object unless the user actually tries to access the results.
 
 ## Creating and Updating Data
 Instances of a SQLClass subclass have instance variables to store all associated database information. These attributes can be viewed together via the `#attributes` methods, and read/updated like regular ruby instance variables.
